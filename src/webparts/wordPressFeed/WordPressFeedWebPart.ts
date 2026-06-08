@@ -41,8 +41,9 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
     const apiBase = this.properties.url;
     const [general, tags, categories] = await Promise.all([
       fetch(`${apiBase}/wp-json`).then((res) => res.json()),
-      fetch(`${apiBase}/wp-json/wp/v2/tags`).then((res) => res.json()),
-      fetch(`${apiBase}/wp-json/wp/v2/categories`).then((res) => res.json()),
+      // per_page ensures we're pulling all categories instead of the default (10)
+      fetch(`${apiBase}/wp-json/wp/v2/tags?per_page=100`).then((res) => res.json()),
+      fetch(`${apiBase}/wp-json/wp/v2/categories?per_page=100`).then((res) => res.json()),
     ]);
     this._siteName = general.name;
     this._tagOptions = tags.map((tag: ITagOrCategory) => ({ key: tag.id, text: tag.name }));
@@ -338,7 +339,7 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                 new PropertyPaneNumericTextField("feedFilterSettings.numPosts", {
                   label: "Number of Posts",
                   min: 1,
-                  max: 50,
+                  max: 5000, // realistically won't need this high of a max, but should not hurt to have.
                   key: "feedFilterSettings.numPosts",
                   value: this.properties.feedFilterSettings.numPosts.toString(),
                   onChange: (s: string) => {
@@ -350,7 +351,7 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                 new PropertyPaneNumericTextField("feedFilterSettings.pastDays", {
                   label: "Past Days",
                   min: 1,
-                  max: 3650, // 10 years seems sufficient :)
+                  max: 36500, // 100 years seems sufficient
                   key: "feedFilterSettings.pastDays",
                   value: this.properties.feedFilterSettings.pastDays.toString(),
                   onChange: (s: string) => {

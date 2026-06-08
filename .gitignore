@@ -9,6 +9,10 @@ node_modules
 # Build generated files
 dist
 lib
+lib-dts
+lib-commonjs
+lib-esm
+jest-output
 release
 solution
 temp
@@ -26,6 +30,9 @@ coverage
 .vs
 bin
 obj
+
+# Visual Studio Code files
+.vscode/
 
 # Resx Generated Code
 *.resx.ts

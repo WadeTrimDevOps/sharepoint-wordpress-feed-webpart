@@ -24,7 +24,10 @@ const fetchPostsWithAndFilters: (
     const response = await fetch(fetchUrl);
     return await response.json();
   } catch (error) {
-    throw new Error("Error fetching posts: " + error.message);
+    if (error instanceof Error) {
+      throw new Error("Error fetching posts: " + error.message);
+    }
+    throw new Error("Error fetching posts: unknown error");
   }
 };
 
@@ -68,7 +71,10 @@ const fetchPostsWithOrFilters: (
     return dedupedUnion;
   } catch (error) {
     console.error("FAILED");
-    throw new Error("Error fetching posts: " + error.message);
+    if (error instanceof Error) {
+      throw new Error("Error fetching posts: " + error.message);
+    }
+    throw new Error("Error fetching posts: unknown error");
   }
 };
 
@@ -114,7 +120,10 @@ const fetchPosts: (url: string, settings: IWordPressFeedFilterSettings) => Promi
   } catch (e) {
     console.error("FAILED");
     console.error(e);
-    throw new Error(e.message);
+    if (e instanceof Error) {
+      throw new Error(e.message);
+    }
+    throw new Error("Error fetching posts: unknown error");
   }
 };
 
@@ -132,12 +141,11 @@ const readMoreLinkNotEmpty: (readMoreLink: IReadMoreLink) => boolean = (readMore
 };
 
 function getColorDropdownOptions(): IPropertyPaneDropdownOption[] {
-  return Object.entries(colorPalette).map(
-    ([key, value]) =>
-      ({
-        key: `[theme:${key}, default: ${value}]`,
-        text: key,
-      } as IPropertyPaneDropdownOption),
+  return Object.keys(colorPalette).map((key) =>
+    ({
+      key: `[theme:${key}, default: ${colorPalette[key as keyof typeof colorPalette]}]`,
+      text: key,
+    } as IPropertyPaneDropdownOption),
   );
 }
 
