@@ -61,6 +61,6 @@ https://github.com/user-attachments/assets/576fcbac-8c7a-4430-a8da-5e6e97aec5ac
 - Ensure that you are at the solution folder
 - in the command line run:
   - **npm install**
-  - **heft serve** 
+  - **heft start** 
 
   
