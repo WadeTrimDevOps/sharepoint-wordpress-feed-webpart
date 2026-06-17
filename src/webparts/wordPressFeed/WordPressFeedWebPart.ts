@@ -41,7 +41,7 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
     const apiBase = this.properties.url;
     const [general, tags, categories] = await Promise.all([
       fetch(`${apiBase}/wp-json`).then((res) => res.json()),
-      // per_page ensures we're pulling all categories instead of the default (10)
+      // per_page increases the default page size (WordPress REST API caps this at 100; paginate if you need more)
       fetch(`${apiBase}/wp-json/wp/v2/tags?per_page=100`).then((res) => res.json()),
       fetch(`${apiBase}/wp-json/wp/v2/categories?per_page=100`).then((res) => res.json()),
     ]);
