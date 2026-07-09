@@ -1,4 +1,15 @@
 interface IColorPalette {
+  // WT color palette
+  wtBrandColorPrimary: string,
+  wtBrandColorPrimaryHover: string,
+  wtBrandColorPrimaryPressed: string,
+  wtBrandColorSecondary: string,
+  wtBrandColorSecondaryHover: string,
+  wtBrandColorSecondaryPressed: string,
+  textColorWhite: string,
+  subtle: string,
+  error: string,
+  // colors provided by original code
   themeLight: string;
   themeTertiary: string;
   black: string;
@@ -25,6 +36,17 @@ interface IColorPalette {
 }
 
 const colorPalette: IColorPalette = {
+  // WT color palette
+  wtBrandColorPrimary: "#43B02A",
+  wtBrandColorPrimaryHover: "#369126",
+  wtBrandColorPrimaryPressed: "#2A5F19",
+  wtBrandColorSecondary: "#535353",
+  wtBrandColorSecondaryHover: "#414141",
+  wtBrandColorSecondaryPressed: "#2E2E2E",
+  textColorWhite: "#FFFFFF",
+  subtle: "#535353",
+  error: "#D13438",
+  // colors provided by original code
   themeLight: "#d6a9af",
   themeTertiary: "#ae656f",
   black: "#000000",

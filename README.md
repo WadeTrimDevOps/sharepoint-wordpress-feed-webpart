@@ -59,8 +59,8 @@ https://github.com/user-attachments/assets/576fcbac-8c7a-4430-a8da-5e6e97aec5ac
 ## Further Development
 - Clone this repository
 - Ensure that you are at the solution folder
-- in the command-line run:
+- in the command line run:
   - **npm install**
-  - **gulp serve** 
+  - **heft start** 
 
- 
+  

@@ -9,6 +9,41 @@ import {
 } from "./interfaces";
 import { colorPalette } from "./colorPalette";
 
+const MAX_WORDPRESS_POSTS_PER_PAGE = 100;
+const MAX_WORDPRESS_PAGES = 50;
+
+const getPaginatedFetchUrl: (fetchUrl: string, page: number) => string = (fetchUrl, page) => {
+  const url = new URL(fetchUrl);
+  url.searchParams.set("per_page", MAX_WORDPRESS_POSTS_PER_PAGE.toString());
+  url.searchParams.set("page", page.toString());
+  url.searchParams.set("_embed", "true");
+  return url.toString();
+};
+
+const fetchPaginatedPosts: (fetchUrl: string, maxPosts: number) => Promise<Array<IWordPressPost>> = async (
+  fetchUrl,
+  maxPosts,
+) => {
+  const posts: IWordPressPost[] = [];
+  let page = 1;
+  while (posts.length < maxPosts && page <= MAX_WORDPRESS_PAGES) {
+    const response = await fetch(getPaginatedFetchUrl(fetchUrl, page));
+    if (!response.ok) {
+      throw new Error(`Error fetching posts: ${response.status} ${response.statusText}`);
+    }
+    const pagePosts = (await response.json()) as Array<IWordPressPost>;
+    if (!Array.isArray(pagePosts) || pagePosts.length === 0) {
+      break;
+    }
+    posts.push(...pagePosts);
+    if (pagePosts.length < MAX_WORDPRESS_POSTS_PER_PAGE) {
+      break;
+    }
+    page += 1;
+  }
+  return posts.slice(0, maxPosts);
+};
+
 const fetchPostsWithAndFilters: (
   fetchUrl: string,
   settings: IWordPressFeedFilterSettings,
@@ -21,10 +56,12 @@ const fetchPostsWithAndFilters: (
       sinceDate.setDate(sinceDate.getDate() - settings.pastDays);
       fetchUrl += `&after=${sinceDate.toISOString()}`;
     }
-    const response = await fetch(fetchUrl);
-    return await response.json();
+    return await fetchPaginatedPosts(fetchUrl, settings.numPosts);
   } catch (error) {
-    throw new Error("Error fetching posts: " + error.message);
+    if (error instanceof Error) {
+      throw new Error("Error fetching posts: " + error.message);
+    }
+    throw new Error("Error fetching posts: unknown error");
   }
 };
 
@@ -45,16 +82,12 @@ const fetchPostsWithOrFilters: (
     // get post set matching tags filter
     if (settings.tagIds.length > 0) {
       tagsFilterUrl += `&tags=${settings.tagIds.join(",")}`;
-
-      const tagFilterResponse = await fetch(tagsFilterUrl);
-      withTags.push(...(await tagFilterResponse.json()));
+      withTags.push(...(await fetchPaginatedPosts(tagsFilterUrl, settings.numPosts)));
     }
 
     if (settings.categoryIds.length > 0) {
       categoriesFilterUrl += `&categories=${settings.categoryIds.join(",")}`;
-
-      const categoryFilterResponse = await fetch(categoriesFilterUrl);
-      withCategories.push(...(await categoryFilterResponse.json()));
+      withCategories.push(...(await fetchPaginatedPosts(categoriesFilterUrl, settings.numPosts)));
     }
 
     const dedupedUnion = [...withTags, ...withCategories].reduce<IWordPressPost[]>((accum, post) => {
@@ -68,7 +101,10 @@ const fetchPostsWithOrFilters: (
     return dedupedUnion;
   } catch (error) {
     console.error("FAILED");
-    throw new Error("Error fetching posts: " + error.message);
+    if (error instanceof Error) {
+      throw new Error("Error fetching posts: " + error.message);
+    }
+    throw new Error("Error fetching posts: unknown error");
   }
 };
 
@@ -114,7 +150,10 @@ const fetchPosts: (url: string, settings: IWordPressFeedFilterSettings) => Promi
   } catch (e) {
     console.error("FAILED");
     console.error(e);
-    throw new Error(e.message);
+    if (e instanceof Error) {
+      throw new Error(e.message);
+    }
+    throw new Error("Error fetching posts: unknown error");
   }
 };
 
@@ -132,12 +171,11 @@ const readMoreLinkNotEmpty: (readMoreLink: IReadMoreLink) => boolean = (readMore
 };
 
 function getColorDropdownOptions(): IPropertyPaneDropdownOption[] {
-  return Object.entries(colorPalette).map(
-    ([key, value]) =>
-      ({
-        key: `[theme:${key}, default: ${value}]`,
-        text: key,
-      } as IPropertyPaneDropdownOption),
+  return Object.keys(colorPalette).map((key) =>
+    ({
+      key: `[theme:${key}, default: ${colorPalette[key as keyof typeof colorPalette]}]`,
+      text: key,
+    } as IPropertyPaneDropdownOption),
   );
 }
 
