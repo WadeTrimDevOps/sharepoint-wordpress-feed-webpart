@@ -13,7 +13,7 @@ import { BaseClientSideWebPart } from "@microsoft/sp-webpart-base";
 import { IReadonlyTheme } from "@microsoft/sp-component-base";
 import WordPressFeed from "./components/WordPressFeed";
 import { ITagOrCategory, IWordPressFeedWebPartProps } from "./interfaces";
-import { defaultColorSettings, defaultDisplaySettings, defaultFeedRequestSettings } from "./defaults";
+import { defaultColorSettings, defaultDisplaySettings, defaultFeedRequestSettings, defaultFeedType } from "./defaults";
 import { filterJoinOperators, layouts } from "./dropdownOptions";
 import { PropertyPaneWordPressUrlField } from "./controls/WordPressUrlField/PropertyPaneWordPressUrlField";
 import { getColorDropdownOptions, validateUrl } from "./util";
@@ -27,12 +27,18 @@ const titleFontWeights: IPropertyPaneDropdownOption[] = [
   { key: "700", text: "Bold" },
 ];
 
+const feedTypeOptions: IPropertyPaneDropdownOption[] = [
+  { key: "news", text: "News" },
+  { key: "projectHighlights", text: "Project Highlights" },
+];
+
 export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPressFeedWebPartProps> {
   // store data that you need to fetch asynchronously within
   // configuration panel as private variables, and load them
   // onInit.
   private _tagOptions: { key: number; text: string }[] = [];
   private _categoryOptions: { key: number; text: string }[] = [];
+  private _portfolioCategoryOptions: { key: number; text: string }[] = [];
   private _colorOptions: IPropertyPaneDropdownOption[] = [];
   private _siteName: string = "";
   public render(): void {
@@ -41,26 +47,37 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
       feedFilterSettings: this.properties.feedFilterSettings,
       colorSettings: this.properties.colorSettings,
       url: this.properties.url,
+      feedType: this.properties.feedType,
     });
     ReactDom.render(element, this.domElement);
   }
   private loadSiteDataFromURL: () => Promise<void> = async () => {
     const apiBase = this.properties.url;
-    const [general, tags, categories] = await Promise.all([
+    const [general, tags, categories, portfolioCategories] = await Promise.all([
       fetch(`${apiBase}/wp-json`).then((res) => res.json()),
       // per_page increases the default page size (WordPress REST API caps this at 100; paginate if you need more)
       fetch(`${apiBase}/wp-json/wp/v2/tags?per_page=100`).then((res) => res.json()),
       fetch(`${apiBase}/wp-json/wp/v2/categories?per_page=100`).then((res) => res.json()),
+      fetch(`${apiBase}/wp-json/wp/v2/portfolio_category?per_page=100`).then((res) =>
+        res.ok ? res.json() : [],
+      ),
     ]);
     this._siteName = general.name;
     this._tagOptions = tags.map((tag: ITagOrCategory) => ({ key: tag.id, text: tag.name }));
     this._categoryOptions = categories.map((cat: ITagOrCategory) => ({ key: cat.id, text: cat.name }));
+    this._portfolioCategoryOptions = portfolioCategories.map((category: ITagOrCategory) => ({
+      key: category.id,
+      text: category.name,
+    }));
     return Promise.resolve();
   };
   protected onInit(): Promise<void> {
     // initialize values to defaults if database instance has nothing stored
     if (!this.properties.url) {
       this.properties.url = "";
+    }
+    if (!this.properties.feedType) {
+      this.properties.feedType = defaultFeedType;
     }
     if (!this.properties.feedFilterSettings) {
       this.properties.feedFilterSettings = defaultFeedRequestSettings;
@@ -79,6 +96,15 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
     }
     this._colorOptions = getColorDropdownOptions();
     return super.onInit();
+  }
+  protected onPropertyPaneFieldChanged(propertyPath: string, oldValue: unknown, newValue: unknown): void {
+    super.onPropertyPaneFieldChanged(propertyPath, oldValue, newValue);
+    if (propertyPath === "feedType" && oldValue !== newValue) {
+      this.properties.feedFilterSettings.categoryIds = [];
+      this.properties.feedFilterSettings.tagIds = [];
+      this.context.propertyPane.refresh();
+      this.render();
+    }
   }
   protected onThemeChanged(currentTheme: IReadonlyTheme | undefined): void {
     if (!currentTheme) {
@@ -123,6 +149,11 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                       })
                       .catch((e) => console.error(e));
                   },
+                }),
+                PropertyPaneDropdown("feedType", {
+                  label: "Feed Source",
+                  options: feedTypeOptions,
+                  selectedKey: this.properties.feedType,
                 }),
               ],
             },
@@ -390,22 +421,30 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                 // Tag/category filtering would require dynamic loading,
                 // which SPFX doesn't support directly in the property pane.
                 // I am using a customPropertyPaneField for this if needed.
-                new PropertyPaneTagCategoryPicker("feedFilterSettings.tagIds", {
-                  label: "Select Tags",
-                  key: "feedFilterSettings.tagIds",
-                  selectedKeys: this.properties.feedFilterSettings.tagIds || [],
-                  options: this._tagOptions,
-                  onChange: (newTagIds: number[]) => {
-                    this.properties.feedFilterSettings.tagIds = newTagIds;
-                    this.context.propertyPane.refresh();
-                    this.render();
-                  },
-                }),
+                ...(this.properties.feedType === "news"
+                  ? [
+                      new PropertyPaneTagCategoryPicker("feedFilterSettings.tagIds", {
+                        label: "Select Tags",
+                        key: "feedFilterSettings.tagIds",
+                        selectedKeys: this.properties.feedFilterSettings.tagIds || [],
+                        options: this._tagOptions,
+                        onChange: (newTagIds: number[]) => {
+                          this.properties.feedFilterSettings.tagIds = newTagIds;
+                          this.context.propertyPane.refresh();
+                          this.render();
+                        },
+                      }),
+                    ]
+                  : []),
                 new PropertyPaneTagCategoryPicker("feedFilterSettings.categoryIds", {
-                  label: "Select Categories",
+                  label:
+                    this.properties.feedType === "projectHighlights" ? "Select Project Categories" : "Select Categories",
                   key: "feedFilterSettings.categoryIds",
                   selectedKeys: this.properties.feedFilterSettings.categoryIds || [],
-                  options: this._categoryOptions,
+                  options:
+                    this.properties.feedType === "projectHighlights"
+                      ? this._portfolioCategoryOptions
+                      : this._categoryOptions,
                   onChange: (newCategoryIds: number[]) => {
                     this.properties.feedFilterSettings.categoryIds = newCategoryIds;
                     this.context.propertyPane.refresh();

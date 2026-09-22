@@ -9,16 +9,18 @@ export const defaultFeedRequestSettings = {
   tagIds: [],
 } as IWordPressFeedFilterSettings;
 
+export const defaultFeedType = "news" as const;
+
 export const defaultDisplaySettings = {
   layoutType: "list",
   showAuthor: false,
   showMedia: true,
   itemsPerPage: 4,
   excerptLength: 0,
-  title: "Practice News",
+  title: "Title Text",
   titleFontSize: 20,
   titleFontWeight: "400",
-  description: "Read the latest from this Practice.",
+  description: "Description text.",
   readMoreLink: {
     linkText: "Read more:",
     linkUrl: "https://wadetrim.com",

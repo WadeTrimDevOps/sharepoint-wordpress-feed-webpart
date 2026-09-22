@@ -11,13 +11,13 @@ const Post: React.FC<IPostComponent> = ({ post, displaySettings, colorSettings }
     if (post && post._embedded && post._embedded["wp:featuredmedia"] && post._embedded["wp:featuredmedia"].length > 0) {
       setMedia(post._embedded["wp:featuredmedia"][0]);
     }
-  }, [displaySettings.showMedia, post._embedded["wp:featuredmedia"]?.length, post.id]);
+  }, [displaySettings.showMedia, post?._embedded?.["wp:featuredmedia"]?.length, post?.id]);
 
   React.useEffect(() => {
     if (post && post._embedded && post._embedded.author && post._embedded.author.length > 0) {
       setAuthor(post._embedded.author[0]);
     }
-  }, [displaySettings.showAuthor, post?._embedded?.author.length]);
+  }, [displaySettings.showAuthor, post?._embedded?.author?.length]);
 
   const authorHasAllData: () => boolean = () => {
     return (

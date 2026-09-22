@@ -80,6 +80,8 @@ interface IWordPressFeedFilterSettings {
   categoryIds: Array<number>;
 }
 
+type WordPressFeedType = "news" | "projectHighlights";
+
 interface IReadMoreLink {
   linkUrl: string;
   linkText: string;
@@ -93,6 +95,7 @@ interface IWordPressFeedWebPartProps {
   displaySettings: IDisplaySettings;
   colorSettings: IColorSettings;
   url: string;
+  feedType: WordPressFeedType;
 }
 
 interface IFeedRenderProps {
@@ -199,4 +202,5 @@ export {
   IDisplaySettings,
   IPostsLayout,
   IColorSettings,
+  WordPressFeedType,
 };
