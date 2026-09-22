@@ -60,6 +60,8 @@ interface IColorSettings {
 
 interface IDisplaySettings {
   title?: string;
+  titleFontSize: number;
+  titleFontWeight: string;
   description?: string;
   readMoreLink: IReadMoreLink;
   layoutType: "list" | "grid";

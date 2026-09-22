@@ -20,6 +20,13 @@ import { getColorDropdownOptions, validateUrl } from "./util";
 import { PropertyPaneNumericTextField } from "./controls/NumericTextField/PropertyPaneNumericTextField";
 import { PropertyPaneThemePaletteColorPicker } from "./controls/ThemePaletteColorPicker/PropertyPaneNumericTextField";
 import { IDropdownOption } from "@fluentui/react";
+
+const titleFontWeights: IPropertyPaneDropdownOption[] = [
+  { key: "400", text: "Regular" },
+  { key: "600", text: "Semi-bold" },
+  { key: "700", text: "Bold" },
+];
+
 export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPressFeedWebPartProps> {
   // store data that you need to fetch asynchronously within
   // configuration panel as private variables, and load them
@@ -60,6 +67,9 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
     }
     if (!this.properties.displaySettings) {
       this.properties.displaySettings = defaultDisplaySettings;
+    } else {
+      this.properties.displaySettings.titleFontSize ??= defaultDisplaySettings.titleFontSize;
+      this.properties.displaySettings.titleFontWeight ??= defaultDisplaySettings.titleFontWeight;
     }
     if (!this.properties.colorSettings) {
       this.properties.colorSettings = defaultColorSettings;
@@ -122,6 +132,23 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                 PropertyPaneTextField("displaySettings.title", {
                   label: "Feed Title",
                   value: this.properties.displaySettings.title,
+                }),
+                new PropertyPaneNumericTextField("displaySettings.titleFontSize", {
+                  label: "Feed Title Size (px)",
+                  min: 1,
+                  max: 100,
+                  key: "displaySettings.titleFontSize",
+                  value: this.properties.displaySettings.titleFontSize.toString(),
+                  onChange: (s: string) => {
+                    this.properties.displaySettings.titleFontSize = parseInt(s);
+                    this.context.propertyPane.refresh();
+                    this.render();
+                  },
+                }),
+                PropertyPaneDropdown("displaySettings.titleFontWeight", {
+                  label: "Feed Title Font Weight",
+                  options: titleFontWeights,
+                  selectedKey: this.properties.displaySettings.titleFontWeight,
                 }),
                 PropertyPaneTextField("displaySettings.description", {
                   label: "Feed Description",
