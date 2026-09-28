@@ -185,7 +185,7 @@ function extractDefaultColor(themeString: string): string {
   }
   const parts = themeString.split("default:");
   if (parts.length > 1) {
-    return parts[1].replace("]", "").trim();
+    return parts[1].replace(/]/g, "").trim();
   }
   return themeString;
 }
