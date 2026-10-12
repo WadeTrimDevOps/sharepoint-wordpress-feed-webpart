@@ -18,7 +18,7 @@ const FeedRender: React.FC<IFeedRenderProps> = ({ posts, displaySettings, colorS
           style={{
             color: extractDefaultColor(colorSettings.titleTextColor),
             fontSize: `${displaySettings.titleFontSize}px`,
-            fontWeight: displaySettings.titleFontWeight,
+fontWeight: Number(displaySettings.titleFontWeight),
           }}
           className={styles.feedTitle}
         >
