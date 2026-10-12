@@ -171,7 +171,7 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                   key: "displaySettings.titleFontSize",
                   value: this.properties.displaySettings.titleFontSize.toString(),
                   onChange: (s: string) => {
-                    this.properties.displaySettings.titleFontSize = parseInt(s);
+                    this.properties.displaySettings.titleFontSize = Math.max(1, parseInt(s, 10) || 1);
                     this.context.propertyPane.refresh();
                     this.render();
                   },
