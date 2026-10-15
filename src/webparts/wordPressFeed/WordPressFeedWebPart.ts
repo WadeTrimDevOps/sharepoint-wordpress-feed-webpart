@@ -99,6 +99,13 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
   }
   protected onPropertyPaneFieldChanged(propertyPath: string, oldValue: unknown, newValue: unknown): void {
     super.onPropertyPaneFieldChanged(propertyPath, oldValue, newValue);
+    if (propertyPath === "displaySettings.mediaHeight") {
+      const parsedHeight = newValue === "" ? 0 : Number(newValue);
+      this.properties.displaySettings.mediaHeight = Number.isFinite(parsedHeight) && parsedHeight >= 0
+        ? parsedHeight
+        : Number(oldValue) || 0;
+      this.render();
+    }
     if (propertyPath === "feedType" && oldValue !== newValue) {
       this.properties.feedFilterSettings.categoryIds = [];
       this.properties.feedFilterSettings.tagIds = [];
@@ -186,6 +193,23 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                   multiline: true,
                   value: this.properties.displaySettings.description,
                 }),
+                new PropertyPaneNumericTextField("displaySettings.postFontSize", {
+                  label: "Post Title Size (px)",
+                  min: 1,
+                  max: 100,
+                  key: "displaySettings.postFontSize",
+                  value: this.properties.displaySettings.postFontSize.toString(),
+                  onChange: (s: string) => {
+                    this.properties.displaySettings.postFontSize = Math.max(1, parseInt(s, 10) || 1);
+                    this.context.propertyPane.refresh();
+                    this.render();
+                  },
+                }),
+                PropertyPaneDropdown("displaySettings.postFontWeight", {
+                  label: "Post Title Font Weight",
+                  options: titleFontWeights,
+                  selectedKey: this.properties.displaySettings.postFontWeight,
+                }),
                 PropertyPaneToggle("displaySettings.readMoreLink.include", {
                   label: "Include Link Below Feed?",
                   checked: this.properties.displaySettings.readMoreLink.include,
@@ -204,9 +228,9 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                   label: "Open link in new tab",
                   checked: this.properties.displaySettings.readMoreLink.linkNewTab,
                 }),
-                PropertyPaneToggle("displaySettings.showAuthor", {
-                  label: "Show Author on Posts",
-                  checked: this.properties.displaySettings.showAuthor,
+                PropertyPaneTextField("displaySettings.mediaHeight", {
+                  label: "Image Height (px)",
+                  value: this.properties.displaySettings.mediaHeight.toString(),
                 }),
                 PropertyPaneToggle("displaySettings.showMedia", {
                   label: "Show Media / Thumbnail (if available)",

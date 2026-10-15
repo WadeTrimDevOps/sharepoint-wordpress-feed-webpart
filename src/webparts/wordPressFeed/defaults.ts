@@ -20,7 +20,10 @@ export const defaultDisplaySettings = {
   title: "Title Text",
   titleFontSize: 20,
   titleFontWeight: "400",
+  mediaHeight: 180,
   description: "Description text.",
+  postFontSize: 20,
+  postFontWeight: "400",
   readMoreLink: {
     linkText: "Read more:",
     linkUrl: "https://wadetrim.com",

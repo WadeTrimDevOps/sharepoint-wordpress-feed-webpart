@@ -117,10 +117,8 @@
 }
 
 .title {
-  font-size: 1.2rem;
   margin-bottom: 8px;
   margin-top: 0;
-  font-weight: 500;
 }
 
 .date {
@@ -140,14 +138,9 @@
 }
 
 .gridContainer {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
-  justify-content: center;
-
-  &>article {
-    width: 40%;
-  }
 }
 
 .listContainer {
@@ -167,9 +160,10 @@
 }
 
 .gridPost>img.thumbnail {
-  flex-basis: 100%;
-  max-width: 100%;
-  height: auto;
+  width: 100%;
+  flex: none;
+  object-fit: cover;
+  display: block;
   border-radius: 8px;
   margin-bottom: 12px;
 }
@@ -187,7 +181,6 @@
 }
 
 .listPost>img.thumbnail {
-  max-height: 200px;
   max-width: 30%;
   object-fit: cover;
   border-radius: 4px;
@@ -195,8 +188,8 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .gridPost {
-    width: 100%;
+  .gridContainer {
+    grid-template-columns: 1fr;
   }
 
   .listPost {

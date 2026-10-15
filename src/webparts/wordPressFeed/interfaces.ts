@@ -63,9 +63,12 @@ interface IDisplaySettings {
   titleFontSize: number;
   titleFontWeight: string;
   description?: string;
+  postFontSize: number;
+  postFontWeight: string;
   readMoreLink: IReadMoreLink;
   layoutType: "list" | "grid";
   showAuthor: boolean;
+  mediaHeight: number;
   showMedia: boolean;
   itemsPerPage: number;
   excerptLength: number;

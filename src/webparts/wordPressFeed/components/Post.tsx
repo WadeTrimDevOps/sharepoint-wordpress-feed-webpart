@@ -3,6 +3,7 @@ import styles from "./WordPressFeed.module.scss";
 import { IWordPressPostAuthor, IPostComponent, IWordPressMediaItem } from "../interfaces";
 import { Link } from "@fluentui/react";
 import { extractDefaultColor } from "../util";
+import { PropertyPaneDynamicFieldSet } from "@microsoft/sp-property-pane";
 
 const Post: React.FC<IPostComponent> = ({ post, displaySettings, colorSettings }) => {
   const [media, setMedia] = React.useState<IWordPressMediaItem | undefined>(undefined);
@@ -67,13 +68,18 @@ const Post: React.FC<IPostComponent> = ({ post, displaySettings, colorSettings }
           className={styles.thumbnail}
           src={media.source_url}
           alt={decodeHtml(media.title.rendered)}
-          width={media.media_details.width}
-          height={media.media_details.height}
+          style={{ height: displaySettings.mediaHeight, width: displaySettings.layoutType === "grid" ? "100%" : "auto"}}
         />
       )}
       <div className={styles.content}>
         {post.title && (
-          <h2 style={{ color: extractDefaultColor(colorSettings.postTitleTextColor) }} className={styles.title}>
+          <h2
+            style={{
+              color: extractDefaultColor(colorSettings.postTitleTextColor),
+              fontSize: `${displaySettings.postFontSize}px`,
+              fontWeight: Number(displaySettings.postFontWeight),
+            }}
+            className={styles.title}>
             {decodeHtml(post.title.rendered)}
           </h2>
         )}
