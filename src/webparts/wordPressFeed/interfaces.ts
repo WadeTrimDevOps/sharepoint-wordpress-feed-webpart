@@ -19,6 +19,7 @@ interface IWordPressPost {
   id: number;
   title: { rendered: string };
   excerpt: { rendered: string };
+  content: { rendered: string };
   _embedded: IWordPressPostEmbeddedData;
   link: string;
   date: string;

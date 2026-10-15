@@ -36,10 +36,24 @@ const Post: React.FC<IPostComponent> = ({ post, displaySettings, colorSettings }
     day: "numeric",
     year: "numeric",
   });
+
   const extractText = (html: string): string => {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    return doc.body.textContent?.slice(0, displaySettings.excerptLength) + "..." || "";
-  };
+  if (!html) {
+    return "";
+  }
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const text = doc.body.textContent || "";
+  const cleanedText = text
+    .replace(/\[[^\]]+\]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (cleanedText.length <= displaySettings.excerptLength) {
+    return cleanedText;
+  }
+  const truncated = cleanedText.slice(0, displaySettings.excerptLength);
+  const lastSpace = truncated.lastIndexOf(" ");
+  return `${truncated.slice(0, lastSpace > 0 ? lastSpace : truncated.length)}...`;
+};
 
   const decodeHtml = (html: string): string => {
     const doc = new DOMParser().parseFromString(html, "text/html");
@@ -68,7 +82,7 @@ const Post: React.FC<IPostComponent> = ({ post, displaySettings, colorSettings }
           className={styles.thumbnail}
           src={media.source_url}
           alt={decodeHtml(media.title.rendered)}
-          style={{ height: displaySettings.mediaHeight, width: displaySettings.layoutType === "grid" ? "100%" : "auto"}}
+          style={{ height: displaySettings.mediaHeight, width: displaySettings.layoutType === "grid" ? "100%" : "auto" }}
         />
       )}
       <div className={styles.content}>
@@ -99,7 +113,7 @@ const Post: React.FC<IPostComponent> = ({ post, displaySettings, colorSettings }
         </p>
         {displaySettings.excerptLength !== 0 && (
           <p style={{ color: extractDefaultColor(colorSettings.postBodyTextColor) }} className={styles.excerpt}>
-            {extractText(post.excerpt.rendered)}
+            {extractText(post.content?.rendered || post.excerpt?.rendered || "")}
           </p>
         )}
         <a
