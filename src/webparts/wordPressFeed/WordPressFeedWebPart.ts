@@ -87,6 +87,9 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
     } else {
       this.properties.displaySettings.titleFontSize ??= defaultDisplaySettings.titleFontSize;
       this.properties.displaySettings.titleFontWeight ??= defaultDisplaySettings.titleFontWeight;
+      this.properties.displaySettings.postFontSize ??= defaultDisplaySettings.postFontSize;
+      this.properties.displaySettings.postFontWeight ??= defaultDisplaySettings.postFontWeight;
+      this.properties.displaySettings.mediaHeight ??= defaultDisplaySettings.mediaHeight;
     }
     if (!this.properties.colorSettings) {
       this.properties.colorSettings = defaultColorSettings;
