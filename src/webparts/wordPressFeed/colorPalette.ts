@@ -1,14 +1,20 @@
 interface IColorPalette {
   // WT color palette
-  wtBrandColorPrimary: string,
-  wtBrandColorPrimaryHover: string,
-  wtBrandColorPrimaryPressed: string,
-  wtBrandColorSecondary: string,
-  wtBrandColorSecondaryHover: string,
-  wtBrandColorSecondaryPressed: string,
+  wtPrimary: string,
+  wtPrimaryHover: string,
+  wtPrimaryPressed: string,
+  wtSecondary: string,
+  wtSecondaryHover: string,
+  wtSecondaryPressed: string,
   textColorWhite: string,
   subtle: string,
   error: string,
+  wtBlue: string,
+  wtMagenta: string,
+  wtOrange: string,
+  wtPurple: string,
+  wtYellow: string,
+  wtTeal: string,
   // colors provided by original code
   themeLight: string;
   themeTertiary: string;
@@ -37,15 +43,21 @@ interface IColorPalette {
 
 const colorPalette: IColorPalette = {
   // WT color palette
-  wtBrandColorPrimary: "#43B02A",
-  wtBrandColorPrimaryHover: "#369126",
-  wtBrandColorPrimaryPressed: "#2A5F19",
-  wtBrandColorSecondary: "#535353",
-  wtBrandColorSecondaryHover: "#414141",
-  wtBrandColorSecondaryPressed: "#2E2E2E",
+  wtPrimary: "#43B02A",
+  wtPrimaryHover: "#369126",
+  wtPrimaryPressed: "#2A5F19",
+  wtSecondary: "#535353",
+  wtSecondaryHover: "#414141",
+  wtSecondaryPressed: "#2E2E2E",
   textColorWhite: "#FFFFFF",
   subtle: "#535353",
   error: "#D13438",
+  wtBlue: "#0082BA",
+  wtMagenta: "#C63663",
+  wtOrange: "#DC582A",
+  wtPurple: "#72246C",
+  wtYellow: "#D2D755",
+  wtTeal: "#3EB1C8",
   // colors provided by original code
   themeLight: "#d6a9af",
   themeTertiary: "#ae656f",

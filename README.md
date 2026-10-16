@@ -1,24 +1,16 @@
-# SharePoint Framework (SPFx) WordPress News Feed Web Part
+# SharePoint Framework (SPFx) WordPress News Feed Webpart
 
-This SharePoint Framework (SPFx) Web Part allows you to fetch and display posts from a WordPress site as a highly configurable news feed using the WordPress REST API. Users can filter posts by tags, categories, post title patterns, and date ranges. This component is ideal for SharePoint environments that need to embed dynamic blog content from a WordPress site.
+This SharePoint Framework (SPFx) Webpart allows you to fetch and display posts from a WordPress site as a highly configurable feed using the WordPress REST API. This webpart supports fetching either news-style posts or portfolio-style project highlights. Users can filter posts by tags, categories, post title patterns, and date ranges. This component is designed for embedding dynamic blog content from the wadetrim.com site, but can be used to render a news feed from other WordPress sites as well.
 
-## ✨ Features
+## Features
 
-- 🔗 Connect to any WordPress site URL
-- 🏷️ Filter posts by tags and categories
-- 📆 Limit posts by date range (e.g., last 7 days)
-- 🔍 Filter post titles with regular expressions (wildcard matching)
-- ⚖️ Combine filters using `AND` / `OR` logic
-- 🔄 Refresh feed and clear feed settings with one click
-- 📃 Fully integrated with Fluent UI for a responsive SharePoint look and feel
-- 🖌️ Configure colors of nearly every UI element by choosing from your SharePoint site's theme color palette!
-
-
-## 🛠️ Usage Demo - Screen Recording
-
-
-https://github.com/user-attachments/assets/576fcbac-8c7a-4430-a8da-5e6e97aec5ac
-
+- Connect to any WordPress site URL
+- Filter posts by tags and categories
+- Limit posts by date range (e.g., last 7 days), or display up to years of information
+- Refresh feed and clear feed settings with one click
+- Fully integrated with Fluent UI for a responsive SharePoint look and feel
+- Configure colors of nearly every UI element by choosing from the theme color palette
+- Configure font styles for heading text
 
 ## Applies to
 
@@ -40,15 +32,18 @@ https://github.com/user-attachments/assets/576fcbac-8c7a-4430-a8da-5e6e97aec5ac
 
 ## Solution
 
-| Solution    | Author(s)                                               |
+| Solution    | Authors                                               |
 | ----------- | ------------------------------------------------------- |
-| sharepoint-wordpress-news-feed | Austin Hunt, austinjhunt.com |
+| sharepoint-wordpress-news-feed | WadeTrimDevOps
+| | repo initially forked from Austin Hunt, austinjhunt.com 
 
 ## Version history
 
 | Version | Date             | Comments        |
 | ------- | ---------------- | --------------- | 
-| 1.0     | April 03, 2025 | Initial release |
+| 1.0.0.0 | April 2025 | Initial release |
+| 2.1.0.1 | July 2026 | Migrate to Heft + WT Customization |
+| 2.1.0.3 | October 2026 | Add Project Highlight Fetch + Additional Customization Options |
 
 ## Disclaimer
 
@@ -62,5 +57,3 @@ https://github.com/user-attachments/assets/576fcbac-8c7a-4430-a8da-5e6e97aec5ac
 - in the command line run:
   - **npm install**
   - **heft start** 
-
-  

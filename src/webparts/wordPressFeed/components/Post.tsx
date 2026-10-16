@@ -3,6 +3,7 @@ import styles from "./WordPressFeed.module.scss";
 import { IWordPressPostAuthor, IPostComponent, IWordPressMediaItem } from "../interfaces";
 import { Link } from "@fluentui/react";
 import { extractDefaultColor } from "../util";
+import { PropertyPaneDynamicFieldSet } from "@microsoft/sp-property-pane";
 
 const Post: React.FC<IPostComponent> = ({ post, displaySettings, colorSettings }) => {
   const [media, setMedia] = React.useState<IWordPressMediaItem | undefined>(undefined);
@@ -11,13 +12,13 @@ const Post: React.FC<IPostComponent> = ({ post, displaySettings, colorSettings }
     if (post && post._embedded && post._embedded["wp:featuredmedia"] && post._embedded["wp:featuredmedia"].length > 0) {
       setMedia(post._embedded["wp:featuredmedia"][0]);
     }
-  }, [displaySettings.showMedia, post._embedded["wp:featuredmedia"]?.length, post.id]);
+  }, [displaySettings.showMedia, post?._embedded?.["wp:featuredmedia"]?.length, post?.id]);
 
   React.useEffect(() => {
     if (post && post._embedded && post._embedded.author && post._embedded.author.length > 0) {
       setAuthor(post._embedded.author[0]);
     }
-  }, [displaySettings.showAuthor, post?._embedded?.author.length]);
+  }, [displaySettings.showAuthor, post?._embedded?.author?.length]);
 
   const authorHasAllData: () => boolean = () => {
     return (
@@ -35,10 +36,24 @@ const Post: React.FC<IPostComponent> = ({ post, displaySettings, colorSettings }
     day: "numeric",
     year: "numeric",
   });
+
   const extractText = (html: string): string => {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    return doc.body.textContent?.slice(0, displaySettings.excerptLength) + "..." || "";
-  };
+  if (!html) {
+    return "";
+  }
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const text = doc.body.textContent || "";
+  const cleanedText = text
+    .replace(/\[[^\]]+\]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (cleanedText.length <= displaySettings.excerptLength) {
+    return cleanedText;
+  }
+  const truncated = cleanedText.slice(0, displaySettings.excerptLength);
+  const lastSpace = truncated.lastIndexOf(" ");
+  return `${truncated.slice(0, lastSpace > 0 ? lastSpace : truncated.length)}...`;
+};
 
   const decodeHtml = (html: string): string => {
     const doc = new DOMParser().parseFromString(html, "text/html");
@@ -67,13 +82,18 @@ const Post: React.FC<IPostComponent> = ({ post, displaySettings, colorSettings }
           className={styles.thumbnail}
           src={media.source_url}
           alt={decodeHtml(media.title.rendered)}
-          width={media.media_details.width}
-          height={media.media_details.height}
+          style={{ height: displaySettings.mediaHeight, width: displaySettings.layoutType === "grid" ? "100%" : "auto" }}
         />
       )}
       <div className={styles.content}>
         {post.title && (
-          <h2 style={{ color: extractDefaultColor(colorSettings.postTitleTextColor) }} className={styles.title}>
+          <h2
+            style={{
+              color: extractDefaultColor(colorSettings.postTitleTextColor),
+              fontSize: `${displaySettings.postFontSize}px`,
+              fontWeight: Number(displaySettings.postFontWeight),
+            }}
+            className={styles.title}>
             {decodeHtml(post.title.rendered)}
           </h2>
         )}
@@ -93,7 +113,7 @@ const Post: React.FC<IPostComponent> = ({ post, displaySettings, colorSettings }
         </p>
         {displaySettings.excerptLength !== 0 && (
           <p style={{ color: extractDefaultColor(colorSettings.postBodyTextColor) }} className={styles.excerpt}>
-            {extractText(post.excerpt.rendered)}
+            {extractText(post.content?.rendered || post.excerpt?.rendered || "")}
           </p>
         )}
         <a

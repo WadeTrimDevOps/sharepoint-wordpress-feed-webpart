@@ -3,7 +3,7 @@
   "solution": {
     "name": "SPFx WordPress News Feed",
     "id": "cb04c1be-2cd9-44aa-aadb-2565f1760c25",
-    "version": "2.1.0.1",
+    "version": "2.1.0.3",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
@@ -30,7 +30,7 @@
         "title": "sharepoint-wordpress-news-feed Feature",
         "description": "The feature that activates elements of the sharepoint-wordpress-news-feed solution.",
         "id": "83912a2b-270c-4132-aba9-afc07a305ff3",
-        "version": "1.0.0.0"
+        "version": "1.0.0.1"
       }
     ]
   },

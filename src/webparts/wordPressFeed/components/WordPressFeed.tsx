@@ -15,11 +15,12 @@ const WordPressFeed: React.FC<IWordPressFeedWebPartProps> = ({
   displaySettings,
   colorSettings,
   url,
+  feedType,
 }) => {
   const [posts, setPosts] = React.useState<Array<IWordPressPost>>([]);
 
   const updatePosts: () => void = () => {
-    fetchPosts(url, feedFilterSettings)
+    fetchPosts(url, feedFilterSettings, feedType)
       .then((posts) => {
         setPosts(posts);
       })
@@ -34,12 +35,13 @@ const WordPressFeed: React.FC<IWordPressFeedWebPartProps> = ({
     }
   }, [
     url,
+    feedType,
     feedFilterSettings.filterJoinOperator,
     feedFilterSettings.numPosts,
     feedFilterSettings.pastDays,
     feedFilterSettings.postPattern,
-    feedFilterSettings.categoryIds.length,
-    feedFilterSettings.tagIds.length,
+    feedFilterSettings.categoryIds.join(","),
+    feedFilterSettings.tagIds.join(","),
   ]);
 
   return url && posts && feedFilterSettings && displaySettings ? (

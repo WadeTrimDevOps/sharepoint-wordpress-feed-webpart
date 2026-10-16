@@ -6,6 +6,7 @@ import {
   IWordPressPostAuthor,
   IWordPressMediaItem,
   IWordPressPostEmbeddedData,
+  WordPressFeedType,
 } from "./interfaces";
 import { colorPalette } from "./colorPalette";
 
@@ -47,10 +48,12 @@ const fetchPaginatedPosts: (fetchUrl: string, maxPosts: number) => Promise<Array
 const fetchPostsWithAndFilters: (
   fetchUrl: string,
   settings: IWordPressFeedFilterSettings,
-) => Promise<Array<IWordPressPost>> = async (fetchUrl, settings) => {
+  feedType: WordPressFeedType,
+) => Promise<Array<IWordPressPost>> = async (fetchUrl, settings, feedType) => {
   try {
-    if (settings.tagIds.length > 0) fetchUrl += `&tags=${settings.tagIds.join(",")}`;
-    if (settings.categoryIds.length > 0) fetchUrl += `&categories=${settings.categoryIds.join(",")}`;
+    const categoryParameter = feedType === "projectHighlights" ? "portfolio_category" : "categories";
+    if (feedType === "news" && settings.tagIds.length > 0) fetchUrl += `&tags=${settings.tagIds.join(",")}`;
+    if (settings.categoryIds.length > 0) fetchUrl += `&${categoryParameter}=${settings.categoryIds.join(",")}`;
     if (settings.pastDays) {
       const sinceDate = new Date();
       sinceDate.setDate(sinceDate.getDate() - settings.pastDays);
@@ -68,7 +71,8 @@ const fetchPostsWithAndFilters: (
 const fetchPostsWithOrFilters: (
   fetchUrl: string,
   settings: IWordPressFeedFilterSettings,
-) => Promise<Array<IWordPressPost>> = async (fetchUrl, settings) => {
+  feedType: WordPressFeedType,
+) => Promise<Array<IWordPressPost>> = async (fetchUrl, settings, feedType) => {
   try {
     if (settings.pastDays) {
       const sinceDate = new Date();
@@ -80,13 +84,14 @@ const fetchPostsWithOrFilters: (
     let tagsFilterUrl = fetchUrl;
     let categoriesFilterUrl = fetchUrl;
     // get post set matching tags filter
-    if (settings.tagIds.length > 0) {
+    if (feedType === "news" && settings.tagIds.length > 0) {
       tagsFilterUrl += `&tags=${settings.tagIds.join(",")}`;
       withTags.push(...(await fetchPaginatedPosts(tagsFilterUrl, settings.numPosts)));
     }
 
     if (settings.categoryIds.length > 0) {
-      categoriesFilterUrl += `&categories=${settings.categoryIds.join(",")}`;
+      const categoryParameter = feedType === "projectHighlights" ? "portfolio_category" : "categories";
+      categoriesFilterUrl += `&${categoryParameter}=${settings.categoryIds.join(",")}`;
       withCategories.push(...(await fetchPaginatedPosts(categoriesFilterUrl, settings.numPosts)));
     }
 
@@ -122,18 +127,24 @@ const getAuthorIfPresent: (embedded: IWordPressPostEmbeddedData) => IWordPressPo
   return undefined;
 };
 
-const fetchPosts: (url: string, settings: IWordPressFeedFilterSettings) => Promise<Array<IWordPressPost>> = async (
+const fetchPosts: (
+  url: string,
+  settings: IWordPressFeedFilterSettings,
+  feedType?: WordPressFeedType,
+) => Promise<Array<IWordPressPost>> = async (
   url,
   settings,
+  feedType = "news",
 ) => {
   let posts: Array<IWordPressPost> = [];
   if (!url || url === "") return posts;
   try {
-    const fetchUrl = `${url}/wp-json/wp/v2/posts?per_page=${settings.numPosts}&_embed=true`;
+    const endpoint = feedType === "projectHighlights" ? "creativo_portfolio" : "posts";
+    const fetchUrl = `${url}/wp-json/wp/v2/${endpoint}?per_page=${settings.numPosts}&_embed=true`;
     if (settings.filterJoinOperator === "AND") {
-      posts = await fetchPostsWithAndFilters(fetchUrl, settings);
+      posts = await fetchPostsWithAndFilters(fetchUrl, settings, feedType);
     } else {
-      posts = await fetchPostsWithOrFilters(fetchUrl, settings);
+      posts = await fetchPostsWithOrFilters(fetchUrl, settings, feedType);
     }
 
     // filter with regex pattern and sort most to least recent
@@ -185,7 +196,7 @@ function extractDefaultColor(themeString: string): string {
   }
   const parts = themeString.split("default:");
   if (parts.length > 1) {
-    return parts[1].replace("]", "").trim();
+    return parts[1].replace(/]/g, "").trim();
   }
   return themeString;
 }
