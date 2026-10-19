@@ -12,7 +12,7 @@ import {
 import { BaseClientSideWebPart } from "@microsoft/sp-webpart-base";
 import { IReadonlyTheme } from "@microsoft/sp-component-base";
 import WordPressFeed from "./components/WordPressFeed";
-import { ITagOrCategory, IWordPressFeedWebPartProps } from "./interfaces";
+import { ITagOrCategory, IWordPressFeedComponentProps, IWordPressFeedWebPartProps } from "./interfaces";
 import { defaultColorSettings, defaultDisplaySettings, defaultFeedRequestSettings, defaultFeedType } from "./defaults";
 import { filterJoinOperators, layouts } from "./dropdownOptions";
 import { PropertyPaneWordPressUrlField } from "./controls/WordPressUrlField/PropertyPaneWordPressUrlField";
@@ -41,13 +41,15 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
   private _portfolioCategoryOptions: { key: number; text: string }[] = [];
   private _colorOptions: IPropertyPaneDropdownOption[] = [];
   private _siteName: string = "";
+  private _feedRefreshToken: number = 0;
   public render(): void {
-    const element: React.ReactElement<IWordPressFeedWebPartProps> = React.createElement(WordPressFeed, {
+    const element: React.ReactElement<IWordPressFeedComponentProps> = React.createElement(WordPressFeed, {
       displaySettings: this.properties.displaySettings,
       feedFilterSettings: this.properties.feedFilterSettings,
       colorSettings: this.properties.colorSettings,
       url: this.properties.url,
       feedType: this.properties.feedType,
+      refreshToken: this._feedRefreshToken,
     });
     ReactDom.render(element, this.domElement);
   }
@@ -152,6 +154,9 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                     this.context.propertyPane.refresh();
                   },
                   siteFetchHandler: async () => {
+                    this.properties.feedType ||= defaultFeedType;
+                    this._feedRefreshToken += 1;
+                    this.render();
                     await this.loadSiteDataFromURL()
                       .then(() => {
                         this.context.propertyPane.refresh();

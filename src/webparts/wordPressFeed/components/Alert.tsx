@@ -15,6 +15,7 @@ const MESSAGES = {
   },
   WARNING: {
     noPostsToDisplay: "There are no posts to display currently",
+    postsLoading: "Posts loading...",
     provideSiteUrl: "Please provide a valid site URL.",
     failedSiteInfoFetch: "Failed to fetch site information. Please try updating your site URL.",
     failedToFetchFeed: "Failed to fetch the feed. Please try updating your site URL.",

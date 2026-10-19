@@ -102,6 +102,10 @@ interface IWordPressFeedWebPartProps {
   feedType: WordPressFeedType;
 }
 
+interface IWordPressFeedComponentProps extends IWordPressFeedWebPartProps {
+  refreshToken: number;
+}
+
 interface IFeedRenderProps {
   displaySettings: IDisplaySettings;
   colorSettings: IColorSettings;
@@ -196,6 +200,7 @@ export {
   IFeedRenderProps,
   IReadMoreLink,
   IWordPressFeedWebPartProps,
+  IWordPressFeedComponentProps,
   IWordPressPost,
   IPostComponent,
   ITagOrCategory,
