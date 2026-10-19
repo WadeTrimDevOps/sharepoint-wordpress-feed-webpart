@@ -19,6 +19,7 @@ interface IWordPressPost {
   id: number;
   title: { rendered: string };
   excerpt: { rendered: string };
+  content: { rendered: string };
   _embedded: IWordPressPostEmbeddedData;
   link: string;
   date: string;
@@ -60,10 +61,15 @@ interface IColorSettings {
 
 interface IDisplaySettings {
   title?: string;
+  titleFontSize: number;
+  titleFontWeight: string;
   description?: string;
+  postFontSize: number;
+  postFontWeight: string;
   readMoreLink: IReadMoreLink;
   layoutType: "list" | "grid";
   showAuthor: boolean;
+  mediaHeight: number;
   showMedia: boolean;
   itemsPerPage: number;
   excerptLength: number;
@@ -78,6 +84,8 @@ interface IWordPressFeedFilterSettings {
   categoryIds: Array<number>;
 }
 
+type WordPressFeedType = "news" | "projectHighlights";
+
 interface IReadMoreLink {
   linkUrl: string;
   linkText: string;
@@ -91,6 +99,11 @@ interface IWordPressFeedWebPartProps {
   displaySettings: IDisplaySettings;
   colorSettings: IColorSettings;
   url: string;
+  feedType: WordPressFeedType;
+}
+
+interface IWordPressFeedComponentProps extends IWordPressFeedWebPartProps {
+  refreshToken: number;
 }
 
 interface IFeedRenderProps {
@@ -187,6 +200,7 @@ export {
   IFeedRenderProps,
   IReadMoreLink,
   IWordPressFeedWebPartProps,
+  IWordPressFeedComponentProps,
   IWordPressPost,
   IPostComponent,
   ITagOrCategory,
@@ -197,4 +211,5 @@ export {
   IDisplaySettings,
   IPostsLayout,
   IColorSettings,
+  WordPressFeedType,
 };

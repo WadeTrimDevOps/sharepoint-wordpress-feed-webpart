@@ -14,9 +14,16 @@ const FeedRender: React.FC<IFeedRenderProps> = ({ posts, displaySettings, colorS
       className={styles.feedContainer}
     >
       {displaySettings?.title?.trim() !== "" && (
-        <h1 style={{ color: extractDefaultColor(colorSettings.titleTextColor) }} className={styles.feedTitle}>
+        <h2
+          style={{
+            color: extractDefaultColor(colorSettings.titleTextColor),
+            fontSize: `${displaySettings.titleFontSize}px`,
+fontWeight: Number(displaySettings.titleFontWeight),
+          }}
+          className={styles.feedTitle}
+        >
           {displaySettings.title}
-        </h1>
+        </h2>
       )}
       {displaySettings.description?.trim() !== "" && (
         <p
