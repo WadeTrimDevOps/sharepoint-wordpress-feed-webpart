@@ -487,11 +487,8 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                   label: "Post Pattern (Wildcard OK)",
                   value: this.properties.feedFilterSettings.postPattern,
                 }),
-                PropertyPaneDropdown("feedFilterSettings.filterJoinOperator", {
-                  label: "Join Operator",
-                  options: filterJoinOperators,
-                  selectedKey: this.properties.feedFilterSettings.filterJoinOperator,
-                }),
+                // removed JOIN operator from property pane as is not useful for current application; 
+                // retain logic elsewhere in case of future webpart adjustments
               ],
             },
           ],

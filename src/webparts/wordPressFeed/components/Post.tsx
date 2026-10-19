@@ -3,7 +3,6 @@ import styles from "./WordPressFeed.module.scss";
 import { IWordPressPostAuthor, IPostComponent, IWordPressMediaItem } from "../interfaces";
 import { Link } from "@fluentui/react";
 import { extractDefaultColor } from "../util";
-import { PropertyPaneDynamicFieldSet } from "@microsoft/sp-property-pane";
 
 const Post: React.FC<IPostComponent> = ({ post, displaySettings, colorSettings }) => {
   const [media, setMedia] = React.useState<IWordPressMediaItem | undefined>(undefined);
