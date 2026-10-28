@@ -12,42 +12,65 @@ import {
 import { BaseClientSideWebPart } from "@microsoft/sp-webpart-base";
 import { IReadonlyTheme } from "@microsoft/sp-component-base";
 import WordPressFeed from "./components/WordPressFeed";
-import { ITagOrCategory, IWordPressFeedWebPartProps } from "./interfaces";
-import { defaultColorSettings, defaultDisplaySettings, defaultFeedRequestSettings } from "./defaults";
+import { ITagOrCategory, IWordPressFeedComponentProps, IWordPressFeedWebPartProps } from "./interfaces";
+import { defaultColorSettings, defaultDisplaySettings, defaultFeedRequestSettings, defaultFeedType } from "./defaults";
 import { filterJoinOperators, layouts } from "./dropdownOptions";
 import { PropertyPaneWordPressUrlField } from "./controls/WordPressUrlField/PropertyPaneWordPressUrlField";
 import { getColorDropdownOptions, validateUrl } from "./util";
 import { PropertyPaneNumericTextField } from "./controls/NumericTextField/PropertyPaneNumericTextField";
 import { PropertyPaneThemePaletteColorPicker } from "./controls/ThemePaletteColorPicker/PropertyPaneNumericTextField";
 import { IDropdownOption } from "@fluentui/react";
+
+const titleFontWeights: IPropertyPaneDropdownOption[] = [
+  { key: "400", text: "Regular" },
+  { key: "600", text: "Semi-bold" },
+  { key: "700", text: "Bold" },
+];
+
+const feedTypeOptions: IPropertyPaneDropdownOption[] = [
+  { key: "news", text: "News" },
+  { key: "projectHighlights", text: "Project Highlights" },
+];
+
 export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPressFeedWebPartProps> {
   // store data that you need to fetch asynchronously within
   // configuration panel as private variables, and load them
   // onInit.
   private _tagOptions: { key: number; text: string }[] = [];
   private _categoryOptions: { key: number; text: string }[] = [];
+  private _portfolioCategoryOptions: { key: number; text: string }[] = [];
   private _colorOptions: IPropertyPaneDropdownOption[] = [];
   private _siteName: string = "";
+  private _feedRefreshToken: number = 0;
   public render(): void {
-    const element: React.ReactElement<IWordPressFeedWebPartProps> = React.createElement(WordPressFeed, {
+    const element: React.ReactElement<IWordPressFeedComponentProps> = React.createElement(WordPressFeed, {
       displaySettings: this.properties.displaySettings,
       feedFilterSettings: this.properties.feedFilterSettings,
       colorSettings: this.properties.colorSettings,
       url: this.properties.url,
+      feedType: this.properties.feedType,
+      refreshToken: this._feedRefreshToken,
     });
     ReactDom.render(element, this.domElement);
   }
   private loadSiteDataFromURL: () => Promise<void> = async () => {
     const apiBase = this.properties.url;
-    const [general, tags, categories] = await Promise.all([
+    const [general, tags, categories, portfolioCategories] = await Promise.all([
       fetch(`${apiBase}/wp-json`).then((res) => res.json()),
       // per_page increases the default page size (WordPress REST API caps this at 100; paginate if you need more)
       fetch(`${apiBase}/wp-json/wp/v2/tags?per_page=100`).then((res) => res.json()),
       fetch(`${apiBase}/wp-json/wp/v2/categories?per_page=100`).then((res) => res.json()),
+      fetch(`${apiBase}/wp-json/wp/v2/portfolio_category?per_page=100`).then((res) =>
+        res.ok ? res.json() : [],
+      ),
     ]);
     this._siteName = general.name;
     this._tagOptions = tags.map((tag: ITagOrCategory) => ({ key: tag.id, text: tag.name }));
     this._categoryOptions = categories.map((cat: ITagOrCategory) => ({ key: cat.id, text: cat.name }));
+    this._portfolioCategoryOptions = portfolioCategories.map((category: ITagOrCategory) => ({
+      key: category.id,
+      text: category.name,
+    }));
     return Promise.resolve();
   };
   protected onInit(): Promise<void> {
@@ -55,11 +78,20 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
     if (!this.properties.url) {
       this.properties.url = "";
     }
+    if (!this.properties.feedType) {
+      this.properties.feedType = defaultFeedType;
+    }
     if (!this.properties.feedFilterSettings) {
       this.properties.feedFilterSettings = defaultFeedRequestSettings;
     }
     if (!this.properties.displaySettings) {
       this.properties.displaySettings = defaultDisplaySettings;
+    } else {
+      this.properties.displaySettings.titleFontSize ??= defaultDisplaySettings.titleFontSize;
+      this.properties.displaySettings.titleFontWeight ??= defaultDisplaySettings.titleFontWeight;
+      this.properties.displaySettings.postFontSize ??= defaultDisplaySettings.postFontSize;
+      this.properties.displaySettings.postFontWeight ??= defaultDisplaySettings.postFontWeight;
+      this.properties.displaySettings.mediaHeight ??= defaultDisplaySettings.mediaHeight;
     }
     if (!this.properties.colorSettings) {
       this.properties.colorSettings = defaultColorSettings;
@@ -69,6 +101,22 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
     }
     this._colorOptions = getColorDropdownOptions();
     return super.onInit();
+  }
+  protected onPropertyPaneFieldChanged(propertyPath: string, oldValue: unknown, newValue: unknown): void {
+    super.onPropertyPaneFieldChanged(propertyPath, oldValue, newValue);
+    if (propertyPath === "displaySettings.mediaHeight") {
+      const parsedHeight = newValue === "" ? 0 : Number(newValue);
+      this.properties.displaySettings.mediaHeight = Number.isFinite(parsedHeight) && parsedHeight >= 0
+        ? parsedHeight
+        : Number(oldValue) || 0;
+      this.render();
+    }
+    if (propertyPath === "feedType" && oldValue !== newValue) {
+      this.properties.feedFilterSettings.categoryIds = [];
+      this.properties.feedFilterSettings.tagIds = [];
+      this.context.propertyPane.refresh();
+      this.render();
+    }
   }
   protected onThemeChanged(currentTheme: IReadonlyTheme | undefined): void {
     if (!currentTheme) {
@@ -106,6 +154,9 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                     this.context.propertyPane.refresh();
                   },
                   siteFetchHandler: async () => {
+                    this.properties.feedType ||= defaultFeedType;
+                    this._feedRefreshToken += 1;
+                    this.render();
                     await this.loadSiteDataFromURL()
                       .then(() => {
                         this.context.propertyPane.refresh();
@@ -113,6 +164,11 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                       })
                       .catch((e) => console.error(e));
                   },
+                }),
+                PropertyPaneDropdown("feedType", {
+                  label: "Feed Source",
+                  options: feedTypeOptions,
+                  selectedKey: this.properties.feedType,
                 }),
               ],
             },
@@ -123,10 +179,44 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                   label: "Feed Title",
                   value: this.properties.displaySettings.title,
                 }),
+                new PropertyPaneNumericTextField("displaySettings.titleFontSize", {
+                  label: "Feed Title Size (px)",
+                  min: 1,
+                  max: 100,
+                  key: "displaySettings.titleFontSize",
+                  value: this.properties.displaySettings.titleFontSize.toString(),
+                  onChange: (s: string) => {
+                    this.properties.displaySettings.titleFontSize = Math.max(1, parseInt(s, 10) || 1);
+                    this.context.propertyPane.refresh();
+                    this.render();
+                  },
+                }),
+                PropertyPaneDropdown("displaySettings.titleFontWeight", {
+                  label: "Feed Title Font Weight",
+                  options: titleFontWeights,
+                  selectedKey: this.properties.displaySettings.titleFontWeight,
+                }),
                 PropertyPaneTextField("displaySettings.description", {
                   label: "Feed Description",
                   multiline: true,
                   value: this.properties.displaySettings.description,
+                }),
+                new PropertyPaneNumericTextField("displaySettings.postFontSize", {
+                  label: "Post Title Size (px)",
+                  min: 1,
+                  max: 100,
+                  key: "displaySettings.postFontSize",
+                  value: this.properties.displaySettings.postFontSize.toString(),
+                  onChange: (s: string) => {
+                    this.properties.displaySettings.postFontSize = Math.max(1, parseInt(s, 10) || 1);
+                    this.context.propertyPane.refresh();
+                    this.render();
+                  },
+                }),
+                PropertyPaneDropdown("displaySettings.postFontWeight", {
+                  label: "Post Title Font Weight",
+                  options: titleFontWeights,
+                  selectedKey: this.properties.displaySettings.postFontWeight,
                 }),
                 PropertyPaneToggle("displaySettings.readMoreLink.include", {
                   label: "Include Link Below Feed?",
@@ -146,9 +236,9 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                   label: "Open link in new tab",
                   checked: this.properties.displaySettings.readMoreLink.linkNewTab,
                 }),
-                PropertyPaneToggle("displaySettings.showAuthor", {
-                  label: "Show Author on Posts",
-                  checked: this.properties.displaySettings.showAuthor,
+                PropertyPaneTextField("displaySettings.mediaHeight", {
+                  label: "Image Height (px)",
+                  value: this.properties.displaySettings.mediaHeight.toString(),
                 }),
                 PropertyPaneToggle("displaySettings.showMedia", {
                   label: "Show Media / Thumbnail (if available)",
@@ -363,22 +453,30 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                 // Tag/category filtering would require dynamic loading,
                 // which SPFX doesn't support directly in the property pane.
                 // I am using a customPropertyPaneField for this if needed.
-                new PropertyPaneTagCategoryPicker("feedFilterSettings.tagIds", {
-                  label: "Select Tags",
-                  key: "feedFilterSettings.tagIds",
-                  selectedKeys: this.properties.feedFilterSettings.tagIds || [],
-                  options: this._tagOptions,
-                  onChange: (newTagIds: number[]) => {
-                    this.properties.feedFilterSettings.tagIds = newTagIds;
-                    this.context.propertyPane.refresh();
-                    this.render();
-                  },
-                }),
+                ...(this.properties.feedType === "news"
+                  ? [
+                      new PropertyPaneTagCategoryPicker("feedFilterSettings.tagIds", {
+                        label: "Select Tags",
+                        key: "feedFilterSettings.tagIds",
+                        selectedKeys: this.properties.feedFilterSettings.tagIds || [],
+                        options: this._tagOptions,
+                        onChange: (newTagIds: number[]) => {
+                          this.properties.feedFilterSettings.tagIds = newTagIds;
+                          this.context.propertyPane.refresh();
+                          this.render();
+                        },
+                      }),
+                    ]
+                  : []),
                 new PropertyPaneTagCategoryPicker("feedFilterSettings.categoryIds", {
-                  label: "Select Categories",
+                  label:
+                    this.properties.feedType === "projectHighlights" ? "Select Project Categories" : "Select Categories",
                   key: "feedFilterSettings.categoryIds",
                   selectedKeys: this.properties.feedFilterSettings.categoryIds || [],
-                  options: this._categoryOptions,
+                  options:
+                    this.properties.feedType === "projectHighlights"
+                      ? this._portfolioCategoryOptions
+                      : this._categoryOptions,
                   onChange: (newCategoryIds: number[]) => {
                     this.properties.feedFilterSettings.categoryIds = newCategoryIds;
                     this.context.propertyPane.refresh();
@@ -389,11 +487,8 @@ export default class WordPressFeedWebPart extends BaseClientSideWebPart<IWordPre
                   label: "Post Pattern (Wildcard OK)",
                   value: this.properties.feedFilterSettings.postPattern,
                 }),
-                PropertyPaneDropdown("feedFilterSettings.filterJoinOperator", {
-                  label: "Join Operator",
-                  options: filterJoinOperators,
-                  selectedKey: this.properties.feedFilterSettings.filterJoinOperator,
-                }),
+                // removed JOIN operator from property pane as is not useful for current application; 
+                // retain logic elsewhere in case of future webpart adjustments
               ],
             },
           ],
